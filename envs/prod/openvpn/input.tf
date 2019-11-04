@@ -2,22 +2,22 @@ variable "region" {
   type = string
 }
 
-variable "sg_operations_cidr" {
+variable "env" {
   type = string
 }
 
-variable "sg_vpn_udp_connection_port" {
-  type = number
-}
-
-variable "sg_vpn_udp_connection_source_cidr" {
+variable "sg-operations-cidr" {
   type = string
 }
 
-variable "sg_vpn_tcp_connection_port" {
-  type = number
+variable "openvpn-ami" {
+  type = string
 }
 
-variable "sg_vpn_tcp_connection_source_cidr" {
+variable "openvpn-server-keypair" {
+  type = string
+}
+
+variable "openvpn-backup-bucket-name" {
   type = string
 }
