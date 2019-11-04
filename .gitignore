@@ -1,0 +1,6 @@
+# Intelig idea
+.idea
+
+# Terraform
+.terraform
+*.tfvars
