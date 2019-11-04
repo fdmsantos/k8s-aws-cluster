@@ -58,11 +58,12 @@ module "openvpn-ec2-policy" {
 }
 
 module "openvpn-server-ec2-role" {
-  source                = "../../aws/iam/role"
-  name                  = "openvpn-ec2-role"
-  assume_role_policy    = data.template_file.openvpn-server-assume-role-policy.rendered
-  policy_arns           = [module.openvpn-ec2-policy.arn]
-  env                   = var.env
+  source                  = "../../aws/iam/role"
+  name                    = "openvpn-ec2-role"
+  assume_role_policy      = data.template_file.openvpn-server-assume-role-policy.rendered
+  policy_arns             = [module.openvpn-ec2-policy.arn]
+  create_instance_profile = true
+  env                     = var.env
 }
 
 module "openvpn-server" {
