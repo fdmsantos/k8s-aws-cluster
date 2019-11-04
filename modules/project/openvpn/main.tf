@@ -1,5 +1,8 @@
 data "template_file" "openvpn-server-ec2-userdata" {
   template = file("${path.module}/templates/openvpn-userdata.tpl")
+  vars = {
+    openvpn_backup_bucket = var.openvpn-backup-bucket-name
+  }
 }
 
 data "template_file" "openvpn-server-ec2-policy" {
@@ -47,7 +50,6 @@ module "openvpn-sg" {
 
   egress_rules = ["all-all"]
 }
-
 
 module "openvpn-ec2-policy" {
   source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
