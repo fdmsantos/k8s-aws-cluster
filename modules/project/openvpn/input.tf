@@ -34,25 +34,25 @@ variable "sg_vpn_tcp_connection_source_cidr" {
   default = "0.0.0.0/0"
 }
 
-variable "server_name" {
+variable "name" {
   type    = string
-  default = "openvpn-server"
+  default = "openvpn"
 }
 
-variable "server_ami" {
+variable "ami" {
   type = string
 }
 
-variable "server_instance_type" {
+variable "instance_type" {
   type    = string
   default = "t2.micro"
 }
 
-variable "server_subnet_id" {
+variable "subnet_id" {
   type = string
 }
 
-variable "server_keypair" {
+variable "keypair" {
   type = string
 }
 

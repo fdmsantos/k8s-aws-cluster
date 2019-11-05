@@ -1,4 +1,5 @@
-data "template_file" "openvpn-server-ec2-userdata" {
+// Data
+data "template_file" "openvpn-ec2-userdata" {
   template = file("${path.module}/templates/openvpn-userdata.tpl")
   vars = {
     openvpn_backup_bucket             = var.openvpn-backup-bucket-name
@@ -7,48 +8,49 @@ data "template_file" "openvpn-server-ec2-userdata" {
   }
 }
 
-data "template_file" "openvpn-server-ec2-s3-policy" {
+data "template_file" "openvpn-ec2-s3-policy" {
   template = file("${path.module}/templates/openvpn-ec2-s3-policy.tpl")
   vars = {
     openvpn_backup_bucket = var.openvpn-backup-bucket-name
   }
 }
 
-data "template_file" "openvpn-server-ec2-ssm-policy" {
+data "template_file" "openvpn-ec2-ssm-policy" {
   template = file("${path.module}/templates/openvpn-ec2-ssm-policy.tpl")
   vars = {
     openvpn-master-password-parameter = module.openvpn-master-user-ssm-parameter.names[0]
   }
 }
 
+// Policys
 module "openvpn-ec2-s3-policy" {
   source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  name             = "openvpn-ec2-s3-policy"
+  name             = "${var.name}-s3-policy"
   path             = "/"
   description      = "Policy to OpenVPN Servers access to S3 Bucket"
-  policy           = data.template_file.openvpn-server-ec2-s3-policy.rendered
+  policy           = data.template_file.openvpn-ec2-s3-policy.rendered
 }
 
 module "openvpn-ec2-ssm-policy" {
   source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  name             = "openvpn-ec2-ssm-policy"
+  name             = "${var.name}-ssm-policy"
   path             = "/"
   description      = "Policy to OpenVPN Servers access to SSM Parameter"
-  policy           = data.template_file.openvpn-server-ec2-ssm-policy.rendered
+  policy           = data.template_file.openvpn-ec2-ssm-policy.rendered
 }
 
-module "openvpn-server-ec2-role" {
+module "openvpn-ec2-role" {
   source                  = "../../aws/ec2/role"
-  name                    = "openvpn-ec2-role"
+  name                    = "${var.name}-role"
   policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn]
   env                     = var.env
 }
 
-
+// Security Group
 module "openvpn-sg" {
   source = "terraform-aws-modules/security-group/aws"
 
-  name        = "openvpn-server-sg"
+  name        = "${var.name}-sg"
   description = "Security Group To OpenVPN server"
   vpc_id      = var.vpc_id
 
@@ -78,11 +80,11 @@ module "openvpn-sg" {
 }
 
 
-
+// SSM Parameter
 module "openvpn-master-user-ssm-parameter" {
   source          = "git::https://github.com/cloudposse/terraform-aws-ssm-parameter-store?ref=master"
   parameter_write = [{
-    name            = "/${var.env}/openvpn-server/users/openvpn"
+    name            = "/${var.env}/${var.name}/users/openvpn"
     value           = var.openvpn-master-password
     type            = "SecureString"
     overwrite       = "true"
@@ -95,18 +97,19 @@ module "openvpn-master-user-ssm-parameter" {
   }
 }
 
+// Server
 module "openvpn-server" {
   source                      = "terraform-aws-modules/ec2-instance/aws"
-  ami                         = var.server_ami
-  name                        = var.server_name
-  instance_type               = var.server_instance_type
+  ami                         = var.ami
+  name                        = var.name
+  instance_type               = var.instance_type
 
   vpc_security_group_ids      = [module.openvpn-sg.this_security_group_id]
-  subnet_id                   = var.server_subnet_id
-  key_name                    = var.server_keypair
-  user_data                   = data.template_file.openvpn-server-ec2-userdata.rendered
+  subnet_id                   = var.subnet_id
+  key_name                    = var.keypair
+  user_data                   = data.template_file.openvpn-ec2-userdata.rendered
   associate_public_ip_address = true
-  iam_instance_profile        = module.openvpn-server-ec2-role.name
+  iam_instance_profile        = module.openvpn-ec2-role.name
 
   tags = {
     terraform   = "true"
@@ -115,6 +118,7 @@ module "openvpn-server" {
 
 }
 
+// Attach Allocate IP
 module "allocate-public-ip" {
   source      = "../../aws/networking/associate-public-eip-instance"
   instance_id = module.openvpn-server.id[0]

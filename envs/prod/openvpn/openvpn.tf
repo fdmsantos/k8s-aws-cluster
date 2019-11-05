@@ -37,9 +37,9 @@ module "openvpn" {
   vpc_id                         = data.terraform_remote_state.vpc.outputs.vpc_id
   sg_operations_cidr             = var.sg-operations-cidr
   # OpenVPN Server Data
-  server_ami                     = data.aws_ami.openvpn-server-ami.id
-  server_subnet_id               = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  server_keypair                 = var.openvpn-server-keypair
+  ami                            = data.aws_ami.openvpn-server-ami.id
+  subnet_id                      = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
+  keypair                        = var.openvpn-server-keypair
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
   openvpn-master-password        = var.openvpn-master-password
 
