@@ -21,3 +21,7 @@ variable "openvpn-server-keypair" {
 variable "openvpn-backup-bucket-name" {
   type = string
 }
+
+variable "openvpn-master-password" {
+  type = string
+}

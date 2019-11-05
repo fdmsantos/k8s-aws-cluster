@@ -22,7 +22,7 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-data "aws_ami" "openvpn-ami" {
+data "aws_ami" "openvpn-server-ami" {
   most_recent      = true
   name_regex       = var.openvpn-ami
   owners           = ["amazon"]
@@ -32,13 +32,15 @@ data "aws_ami" "openvpn-ami" {
 module "openvpn" {
   source                         = "../../../modules/project/openvpn"
   env                            = var.env
+  region                         = var.region
   # Security Group Data
   vpc_id                         = data.terraform_remote_state.vpc.outputs.vpc_id
   sg_operations_cidr             = var.sg-operations-cidr
   # OpenVPN Server Data
-  server_ami                     = data.aws_ami.openvpn-ami.id
+  server_ami                     = data.aws_ami.openvpn-server-ami.id
   server_subnet_id               = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
   server_keypair                 = var.openvpn-server-keypair
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
+  openvpn-master-password        = var.openvpn-master-password
 
 }

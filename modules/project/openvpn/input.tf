@@ -1,3 +1,7 @@
+variable "region" {
+  type = string
+}
+
 variable "vpc_id" {
   type = string
 }
@@ -32,7 +36,7 @@ variable "sg_vpn_tcp_connection_source_cidr" {
 
 variable "server_name" {
   type    = string
-  default = "kubernetes-openvpn-server"
+  default = "openvpn-server"
 }
 
 variable "server_ami" {
@@ -53,5 +57,9 @@ variable "server_keypair" {
 }
 
 variable "openvpn-backup-bucket-name" {
+  type = string
+}
+
+variable "openvpn-master-password" {
   type = string
 }
