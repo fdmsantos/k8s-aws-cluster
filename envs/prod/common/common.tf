@@ -13,5 +13,4 @@ terraform {
 
 module "elastic-ip-manager" {
   source = "../../../modules/project/elastic-ip-manager"
-  region = var.region
 }

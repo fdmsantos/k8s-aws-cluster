@@ -1,0 +1,96 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  LambdaS3Bucket:
+    Type: String
+    Default: ''
+  CFNCustomProviderZipFileName:
+    Type: String
+    Default: lambdas/elastic-ip-manager-0.1.6.zip
+
+Conditions:
+  UsePublicBucket: !Equals
+    - !Ref 'LambdaS3Bucket'
+    - ''
+
+Resources:
+  Policy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Resource: "*"
+          Action:
+            - ec2:DescribeAddresses
+            - ec2:DescribeInstances
+            - ec2:AssociateAddress
+            - ec2:DisassociateAddress
+            - tag:GetTagValues
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      - !Ref Policy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Elastic IP manager for Autoscaling Group instances
+      FunctionName: elastic-ip-manager
+      Code:
+        S3Bucket: !If
+          - UsePublicBucket
+          - !Sub 'binxio-public-${AWS::Region}'
+          - !Ref 'LambdaS3Bucket'
+        S3Key: !Ref 'CFNCustomProviderZipFileName'
+      Handler: elastic_ip_manager.handler
+      Role: !GetAtt LambdaRole.Arn
+      Runtime: python3.7
+      Timeout: 600
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt Function.Arn
+      Principal: events.amazonaws.com
+
+  Sync:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: elastic-ip-manager sync
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - Id: elastic-ip-manager
+          Arn: !GetAtt Function.Arn
+
+  Trigger:
+    Type: AWS::Events::Rule
+    Properties:
+      State: ENABLED
+      EventPattern: |
+        {
+          "source": [
+            "aws.ec2"
+          ],
+          "detail-type": [
+            "EC2 Instance State-change Notification"
+          ]
+        }
+      Targets:
+        - Id: elastic-ip-manager
+          Arn: !GetAtt Function.Arn
