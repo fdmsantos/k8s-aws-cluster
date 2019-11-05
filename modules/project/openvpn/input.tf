@@ -48,8 +48,8 @@ variable "instance_type" {
   default = "t2.micro"
 }
 
-variable "subnet_id" {
-  type = string
+variable "subnets_ids" {
+  type = list(string)
 }
 
 variable "keypair" {

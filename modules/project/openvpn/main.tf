@@ -96,27 +96,30 @@ module "openvpn-master-user-ssm-parameter" {
   tags              = var.common-tags
 }
 
-// Server
-module "openvpn-server" {
-  source                      = "terraform-aws-modules/ec2-instance/aws"
-  ami                         = var.ami
-  name                        = var.name
-  instance_type               = var.instance_type
 
-  vpc_security_group_ids      = [module.openvpn-sg.this_security_group_id]
-  subnet_id                   = var.subnet_id
-  key_name                    = var.keypair
-  user_data                   = data.template_file.openvpn-ec2-userdata.rendered
-  associate_public_ip_address = true
-  iam_instance_profile        = module.openvpn-ec2-role.name
+module "openvpn-asg" {
+  source                             = "terraform-aws-modules/autoscaling/aws"
+  name                               = var.name
+  # Launch configuration
+  lc_name                            = "${var.name}-lc"
+  image_id                           = var.ami
+  instance_type                      = var.instance_type
+  security_groups                    = [module.openvpn-sg.this_security_group_id]
+  key_name                           = var.keypair
+  user_data                          = data.template_file.openvpn-ec2-userdata.rendered
+  associate_public_ip_address        = true
+  iam_instance_profile               = module.openvpn-ec2-role.name
+  recreate_asg_when_lc_changes       = true
 
-  tags                        = var.common-tags
+  # Auto scaling group
+  asg_name                           = "${var.name}-asg"
+  vpc_zone_identifier                = var.subnets_ids
+  health_check_type                  = "EC2"
+  health_check_grace_period          = 10
+  min_size                           = 1
+  max_size                           = 1
+  desired_capacity                   = 1
+  wait_for_capacity_timeout          = 0
 
+  tags_as_map                        = var.common-tags
 }
-
-// Attach Allocate IP
-module "allocate-public-ip" {
-  source      = "../../aws/networking/associate-public-eip-instance"
-  instance_id = module.openvpn-server.id[0]
-}
-
