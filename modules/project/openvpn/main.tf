@@ -21,12 +21,29 @@ data "template_file" "openvpn-server-ec2-ssm-policy" {
   }
 }
 
-data "template_file" "openvpn-server-assume-role-policy" {
-  template = file("${path.module}/templates/openvpn-assume-role-policy.tpl")
-  vars = {
-    openvpn_backup_bucket = var.openvpn-backup-bucket-name
-  }
+module "openvpn-ec2-s3-policy" {
+  source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  name             = "openvpn-ec2-s3-policy"
+  path             = "/"
+  description      = "Policy to OpenVPN Servers access to S3 Bucket"
+  policy           = data.template_file.openvpn-server-ec2-s3-policy.rendered
 }
+
+module "openvpn-ec2-ssm-policy" {
+  source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  name             = "openvpn-ec2-ssm-policy"
+  path             = "/"
+  description      = "Policy to OpenVPN Servers access to SSM Parameter"
+  policy           = data.template_file.openvpn-server-ec2-ssm-policy.rendered
+}
+
+module "openvpn-server-ec2-role" {
+  source                  = "../../aws/ec2/role"
+  name                    = "openvpn-ec2-role"
+  policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn]
+  env                     = var.env
+}
+
 
 module "openvpn-sg" {
   source = "terraform-aws-modules/security-group/aws"
@@ -60,30 +77,7 @@ module "openvpn-sg" {
   egress_rules = ["all-all"]
 }
 
-module "openvpn-ec2-s3-policy" {
-  source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  name             = "openvpn-ec2-s3-policy"
-  path             = "/"
-  description      = "Policy to OpenVPN Servers access to S3 Bucket"
-  policy           = data.template_file.openvpn-server-ec2-s3-policy.rendered
-}
 
-module "openvpn-ec2-ssm-policy" {
-  source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  name             = "openvpn-ec2-ssm-policy"
-  path             = "/"
-  description      = "Policy to OpenVPN Servers access to SSM Parameter"
-  policy           = data.template_file.openvpn-server-ec2-ssm-policy.rendered
-}
-
-module "openvpn-server-ec2-role" {
-  source                  = "../../aws/iam/role"
-  name                    = "openvpn-ec2-role"
-  assume_role_policy      = data.template_file.openvpn-server-assume-role-policy.rendered
-  policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn]
-  create_instance_profile = true
-  env                     = var.env
-}
 
 module "openvpn-master-user-ssm-parameter" {
   source          = "git::https://github.com/cloudposse/terraform-aws-ssm-parameter-store?ref=master"
