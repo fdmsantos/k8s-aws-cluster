@@ -2,14 +2,10 @@ data "template_file" "ec2-assume-role-policy" {
   template = file("${path.module}/templates/assume-role-policy.tpl")
 }
 
-
 resource "aws_iam_role" "role" {
   name               = var.name
   assume_role_policy = data.template_file.ec2-assume-role-policy.rendered
-  tags = {
-    Terraform   = "true"
-    Environment = var.env
-  }
+  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "role-attach" {

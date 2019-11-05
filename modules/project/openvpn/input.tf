@@ -63,3 +63,8 @@ variable "openvpn-backup-bucket-name" {
 variable "openvpn-master-password" {
   type = string
 }
+
+variable "common-tags" {
+  type    = object({})
+  default = {}
+}

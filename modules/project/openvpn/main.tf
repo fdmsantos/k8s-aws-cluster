@@ -44,6 +44,7 @@ module "openvpn-ec2-role" {
   name                    = "${var.name}-role"
   policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn]
   env                     = var.env
+  tags                    = var.common-tags
 }
 
 // Security Group
@@ -76,7 +77,8 @@ module "openvpn-sg" {
     },
   ]
 
-  egress_rules = ["all-all"]
+  egress_rules     = ["all-all"]
+  tags             = var.common-tags
 }
 
 
@@ -91,10 +93,7 @@ module "openvpn-master-user-ssm-parameter" {
     description     = "OpenVPN Master user password"
   }]
 
-  tags = {
-    terraform   = "true"
-    environment = var.env
-  }
+  tags              = var.common-tags
 }
 
 // Server
@@ -111,10 +110,7 @@ module "openvpn-server" {
   associate_public_ip_address = true
   iam_instance_profile        = module.openvpn-ec2-role.name
 
-  tags = {
-    terraform   = "true"
-    environment = var.env
-  }
+  tags                        = var.common-tags
 
 }
 

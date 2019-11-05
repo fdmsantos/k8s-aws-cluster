@@ -9,3 +9,7 @@ variable "env" {
 variable "policy_arns" {
   type = list(string)
 }
+
+variable "tags" {
+  type = object({})
+}

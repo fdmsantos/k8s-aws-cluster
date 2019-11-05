@@ -2,6 +2,15 @@ provider "aws" {
   region  = var.region
 }
 
+locals {
+  # Common tags to be assigned to all resources
+  common-tags = {
+    terraform   = "true"
+    environment = var.env
+  }
+}
+
+
 terraform {
   backend "s3" {
     region  = "eu-west-1"
@@ -42,5 +51,5 @@ module "openvpn" {
   keypair                        = var.openvpn-server-keypair
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
   openvpn-master-password        = var.openvpn-master-password
-
+  common-tags                    = local.common-tags
 }
