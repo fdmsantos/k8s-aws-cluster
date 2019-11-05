@@ -4,6 +4,3 @@
 # Terraform
 .terraform
 *.tfvars
-
-# Lambda Code
-modules/project/elastic-ip-manager/code/*
