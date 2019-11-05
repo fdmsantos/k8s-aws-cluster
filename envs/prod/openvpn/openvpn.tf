@@ -10,7 +10,6 @@ locals {
   }
 }
 
-
 terraform {
   backend "s3" {
     region  = "eu-west-1"
@@ -20,13 +19,22 @@ terraform {
   }
 }
 
-
 data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {
     region = "eu-west-1"
     bucket = "fsantos-k8s-terraform-state"
     key    = "envs/prod/vpc/terraform.tfstate"
+
+  }
+}
+
+data "terraform_remote_state" "route53" {
+  backend = "s3"
+  config = {
+    region = "eu-west-1"
+    bucket = "fsantos-k8s-terraform-state"
+    key    = "envs/prod/route53/terraform.tfstate"
 
   }
 }
@@ -51,5 +59,8 @@ module "openvpn" {
   keypair                        = var.openvpn-server-keypair
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
   openvpn-master-password        = var.openvpn-master-password
+  # Route 53
+  primary_zone_id                = data.terraform_remote_state.route53.outputs.zone_id
+  domain                         = data.terraform_remote_state.route53.outputs.domain
   common-tags                    = local.common-tags
 }

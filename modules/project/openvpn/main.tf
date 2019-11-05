@@ -97,9 +97,32 @@ module "openvpn-master-user-ssm-parameter" {
 }
 
 
+// Allocate ElasticIP
+resource "aws_eip" "openvpn_eip" {
+  vpc              = true
+  public_ipv4_pool = "amazon"
+  tags = {
+    Name                    = "${var.name}-eip"
+    elastic-ip-manager-pool = var.name
+    terraform               = true
+    environment             = var.env
+  }
+}
+
+// Route 53
+resource "aws_route53_record" "web_vpn" {
+  zone_id = var.primary_zone_id
+  name    = "web.vpn.${var.domain}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.openvpn_eip.public_ip]
+}
+
+// AutoScaling Group
 module "openvpn-asg" {
   source                             = "terraform-aws-modules/autoscaling/aws"
   name                               = var.name
+
   # Launch configuration
   lc_name                            = "${var.name}-lc"
   image_id                           = var.ami
@@ -115,11 +138,27 @@ module "openvpn-asg" {
   asg_name                           = "${var.name}-asg"
   vpc_zone_identifier                = var.subnets_ids
   health_check_type                  = "EC2"
-  health_check_grace_period          = 10
+  health_check_grace_period          = 5
   min_size                           = 1
   max_size                           = 1
   desired_capacity                   = 1
   wait_for_capacity_timeout          = 0
 
-  tags_as_map                        = var.common-tags
+  tags = [
+    {
+      key                              = "elastic-ip-manager-pool"
+      value                            = var.name
+      propagate_at_launch              = true
+    },
+    {
+      key                              = "terraform"
+      value                            = "true"
+      propagate_at_launch              = true
+    },
+    {
+      key                              = "environment"
+      value                            = var.env
+      propagate_at_launch              = true
+    }
+  ]
 }

@@ -68,3 +68,11 @@ variable "common-tags" {
   type    = object({})
   default = {}
 }
+
+variable "domain" {
+  type    = string
+}
+
+variable "primary_zone_id" {
+  type    = string
+}
