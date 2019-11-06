@@ -52,7 +52,7 @@ module "openvpn" {
   region                         = var.region
   # Security Group Data
   vpc_id                         = data.terraform_remote_state.vpc.outputs.vpc_id
-  sg_operations_cidr             = var.sg-operations-cidr
+  vpc_cidr                       = data.terraform_remote_state.vpc.outputs.vpc_cidr
   # OpenVPN Server Data
   ami                            = data.aws_ami.openvpn-server-ami.id
   subnets_ids                    = data.terraform_remote_state.vpc.outputs.public_subnets_ids

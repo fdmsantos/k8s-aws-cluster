@@ -10,28 +10,13 @@ variable "env" {
   type = string
 }
 
-variable "sg_operations_cidr" {
+variable "sg_openvpn_webclient_customer_port" {
+  type    = string
+  default = 9091
+}
+
+variable "vpc_cidr" {
   type = string
-}
-
-variable "sg_vpn_udp_connection_port" {
-  type   = number
-  default = 1194
-}
-
-variable "sg_vpn_udp_connection_source_cidr" {
-  type    = string
-  default = "0.0.0.0/0"
-}
-
-variable "sg_vpn_tcp_connection_port" {
-  type    = number
-  default = 943
-}
-
-variable "sg_vpn_tcp_connection_source_cidr" {
-  type    = string
-  default = "0.0.0.0/0"
 }
 
 variable "name" {

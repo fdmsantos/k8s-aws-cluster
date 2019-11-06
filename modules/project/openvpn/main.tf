@@ -57,24 +57,26 @@ module "openvpn-sg" {
 
   ingress_with_cidr_blocks = [
     {
-      from_port   = var.sg_vpn_udp_connection_port
-      to_port     = var.sg_vpn_udp_connection_port
+      from_port   = 1194
+      to_port     = 1194
       protocol    = "udp"
-      description = "VPN Connection"
-      cidr_blocks = var.sg_vpn_udp_connection_source_cidr
+      description = "UDP VPN Connection"
+      cidr_blocks = "0.0.0.0/0"
     },
     {
-      from_port   = var.sg_vpn_tcp_connection_port
-      to_port     = var.sg_vpn_tcp_connection_port
+      from_port   = 443
+      to_port     = 443
       protocol    = "tcp"
-      description = "HTTPS Conection"
-      cidr_blocks = var.sg_vpn_tcp_connection_source_cidr
+      description = "TCP VPN Connection"
+      cidr_blocks = "0.0.0.0/0"
     },
     {
-      rule        = "ssh-tcp"
-      cidr_blocks = var.sg_operations_cidr
-      description = "SSH Admin Operations"
-    },
+      from_port   = var.sg_openvpn_webclient_customer_port
+      to_port     = var.sg_openvpn_webclient_customer_port
+      protocol    = "tcp"
+      description = "Customer Web Client"
+      cidr_blocks = "0.0.0.0/0"
+    }
   ]
 
   egress_rules     = ["all-all"]
@@ -112,7 +114,7 @@ resource "aws_eip" "openvpn_eip" {
 // Route 53
 resource "aws_route53_record" "web_vpn" {
   zone_id = var.primary_zone_id
-  name    = "web.vpn.${var.domain}"
+  name    = "vpn.${var.domain}"
   type    = "A"
   ttl     = "300"
   records = [aws_eip.openvpn_eip.public_ip]
