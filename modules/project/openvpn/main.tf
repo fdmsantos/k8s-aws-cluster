@@ -112,13 +112,22 @@ resource "aws_eip" "openvpn_eip" {
 }
 
 // Route 53
-resource "aws_route53_record" "web_vpn" {
-  zone_id = var.primary_zone_id
-  name    = "vpn.${var.domain}"
+resource "aws_route53_record" "public_vpn_domain" {
+  zone_id = var.public_zone_id
+  name    = "vpn.${var.public_domain}"
   type    = "A"
   ttl     = "300"
   records = [aws_eip.openvpn_eip.public_ip]
 }
+
+resource "aws_route53_record" "private_vpn_domain" {
+  zone_id = var.private_zone_id
+  name    = "vpn.${var.private_domain}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.openvpn_eip.public_ip]
+}
+
 
 // AutoScaling Group
 module "openvpn-asg" {

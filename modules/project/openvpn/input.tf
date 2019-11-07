@@ -54,10 +54,18 @@ variable "common-tags" {
   default = {}
 }
 
-variable "domain" {
+variable "public_domain" {
   type    = string
 }
 
-variable "primary_zone_id" {
+variable "public_zone_id" {
+  type    = string
+}
+
+variable "private_domain" {
+  type    = string
+}
+
+variable "private_zone_id" {
   type    = string
 }

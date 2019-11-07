@@ -8,4 +8,5 @@ runcmd:
 - yum -y install openvpn-as
 - aws s3 sync s3://${openvpn_backup_bucket}/etc /usr/local/openvpn_as/etc/ --exclude "*" --include "as.conf" --include "db/*"
 - /usr/local/openvpn_as/scripts/ovpnpasswd -u openvpn -p $(aws ssm --region=${region} get-parameter --name ${openvpn-master-password-parameter} --with-decryption --output text --query 'Parameter.Value')
+- service openvpnas restart
 - (crontab -l ; echo "*/5 * * * * aws s3 sync /usr/local/openvpn_as/etc/ s3://${openvpn_backup_bucket}/etc --exclude \"*\" --include \"/usr/local/openvpn_as/etc/as.conf\" --include \"/usr/local/openvpn_as/etc/db/*\"")| crontab -

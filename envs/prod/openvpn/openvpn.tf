@@ -60,7 +60,9 @@ module "openvpn" {
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
   openvpn-master-password        = var.openvpn-master-password
   # Route 53
-  primary_zone_id                = data.terraform_remote_state.route53.outputs.zone_id
-  domain                         = data.terraform_remote_state.route53.outputs.domain
+  public_zone_id                 = data.terraform_remote_state.route53.outputs.public_zone_id
+  public_domain                  = data.terraform_remote_state.route53.outputs.public_domain
+  private_zone_id                = data.terraform_remote_state.route53.outputs.private_zone_id
+  private_domain                 = data.terraform_remote_state.route53.outputs.private_domain
   common-tags                    = local.common-tags
 }

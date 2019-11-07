@@ -34,3 +34,12 @@ resource "aws_route53_zone" "main" {
   vpc_id         = data.terraform_remote_state.vpc.outputs.vpc_id
   tags           = local.common-tags
 }
+
+
+resource "aws_route53_zone" "private" {
+  name = "int.${var.domain}"
+
+  vpc {
+    vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+  }
+}
