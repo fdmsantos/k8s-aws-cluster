@@ -5,6 +5,7 @@ data "template_file" "openvpn-ec2-userdata" {
     openvpn_backup_bucket             = var.openvpn-backup-bucket-name
     openvpn-master-password-parameter = module.openvpn-master-user-ssm-parameter.names[0]
     region                            = var.region
+    openvpn_secondary_private_ip      = var.openvpn_secondary_private_ip
   }
 }
 
@@ -21,6 +22,11 @@ data "template_file" "openvpn-ec2-ssm-policy" {
     openvpn-master-password-parameter = module.openvpn-master-user-ssm-parameter.names[0]
   }
 }
+
+data "template_file" "openvpn-ec2-ec2-policy" {
+  template = file("${path.module}/templates/openvpn-ec2-ec2-policy.tpl")
+}
+
 
 // Policys
 module "openvpn-ec2-s3-policy" {
@@ -39,10 +45,18 @@ module "openvpn-ec2-ssm-policy" {
   policy           = data.template_file.openvpn-ec2-ssm-policy.rendered
 }
 
+module "openvpn-ec2-ec2-policy" {
+  source           = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  name             = "${var.name}-ec2-policy"
+  path             = "/"
+  description      = "Policy to OpenVPN Servers access to EC2r"
+  policy           = data.template_file.openvpn-ec2-ec2-policy.rendered
+}
+
 module "openvpn-ec2-role" {
   source                  = "../../aws/ec2/role"
   name                    = "${var.name}-role"
-  policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn]
+  policy_arns             = [module.openvpn-ec2-s3-policy.arn, module.openvpn-ec2-ssm-policy.arn, module.openvpn-ec2-ec2-policy.arn]
   env                     = var.env
   tags                    = var.common-tags
 }
@@ -125,7 +139,7 @@ resource "aws_route53_record" "private_vpn_domain" {
   name    = "vpn.${var.private_domain}"
   type    = "A"
   ttl     = "300"
-  records = [aws_eip.openvpn_eip.public_ip]
+  records = [var.openvpn_secondary_private_ip]
 }
 
 
@@ -145,9 +159,10 @@ module "openvpn-asg" {
   iam_instance_profile               = module.openvpn-ec2-role.name
   recreate_asg_when_lc_changes       = true
 
+
   # Auto scaling group
   asg_name                           = "${var.name}-asg"
-  vpc_zone_identifier                = var.subnets_ids
+  vpc_zone_identifier                = [var.subnets_ids[0]]
   health_check_type                  = "EC2"
   health_check_grace_period          = 5
   min_size                           = 1

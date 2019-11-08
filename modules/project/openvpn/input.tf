@@ -69,3 +69,7 @@ variable "private_domain" {
 variable "private_zone_id" {
   type    = string
 }
+
+variable "openvpn_secondary_private_ip" {
+  type    = string
+}

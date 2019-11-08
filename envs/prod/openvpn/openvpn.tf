@@ -59,6 +59,7 @@ module "openvpn" {
   keypair                        = var.openvpn-server-keypair
   openvpn-backup-bucket-name     = var.openvpn-backup-bucket-name
   openvpn-master-password        = var.openvpn-master-password
+  openvpn_secondary_private_ip   = var.openvpn_secondary_private_ip
   # Route 53
   public_zone_id                 = data.terraform_remote_state.route53.outputs.public_zone_id
   public_domain                  = data.terraform_remote_state.route53.outputs.public_domain

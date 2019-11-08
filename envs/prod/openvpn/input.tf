@@ -25,3 +25,7 @@ variable "openvpn-backup-bucket-name" {
 variable "openvpn-master-password" {
   type = string
 }
+
+variable "openvpn_secondary_private_ip" {
+  type  = string
+}
