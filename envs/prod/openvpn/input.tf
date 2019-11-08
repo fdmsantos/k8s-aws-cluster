@@ -29,3 +29,7 @@ variable "openvpn-master-password" {
 variable "openvpn_secondary_private_ip" {
   type  = string
 }
+
+variable "openvpn_network" {
+  type = string
+}

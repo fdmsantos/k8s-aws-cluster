@@ -73,3 +73,15 @@ variable "private_zone_id" {
 variable "openvpn_secondary_private_ip" {
   type    = string
 }
+
+variable "openvpn_network" {
+  type   = string
+}
+
+variable "public-route_table" {
+  type = string
+}
+
+variable "private-route_table" {
+  type = string
+}

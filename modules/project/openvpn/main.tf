@@ -6,6 +6,9 @@ data "template_file" "openvpn-ec2-userdata" {
     openvpn-master-password-parameter = module.openvpn-master-user-ssm-parameter.names[0]
     region                            = var.region
     openvpn_secondary_private_ip      = var.openvpn_secondary_private_ip
+    openvpn_network                   = var.openvpn_network
+    private-route_table               = var.private-route_table
+    public-route_table                = var.public-route_table
   }
 }
 
