@@ -101,6 +101,36 @@ module "openvpn-sg" {
 }
 
 
+// Security Group
+module "vpc-common-sg" {
+  source       = "terraform-aws-modules/security-group/aws"
+
+  name        = "vpc-common-sg"
+  description = "Allow all Ping and VPN inside VPC"
+  vpc_id      = var.vpc_id
+
+  ingress_with_cidr_blocks = [
+    {
+      rule           = "all-icmp"
+      description    = "Permit ALL ICMP inside VPC"
+      cidr_blocks    = var.vpc_cidr
+    },
+    {
+      rule           = "all-icmp"
+      description    = "Permit ALL ICMP inside VPN"
+      cidr_blocks    = var.openvpn_network
+    },
+    {
+      rule           = "ssh-tcp"
+      description    = "Permit ALL SSH inside VPN"
+      cidr_blocks    = var.openvpn_network
+    }
+  ]
+
+  egress_rules     = ["all-all"]
+}
+
+
 // SSM Parameter
 module "openvpn-master-user-ssm-parameter" {
   source          = "git::https://github.com/cloudposse/terraform-aws-ssm-parameter-store?ref=master"
@@ -155,7 +185,7 @@ module "openvpn-asg" {
   lc_name                            = "${var.name}-lc"
   image_id                           = var.ami
   instance_type                      = var.instance_type
-  security_groups                    = [module.openvpn-sg.this_security_group_id]
+  security_groups                    = [module.openvpn-sg.this_security_group_id, module.vpc-common-sg.this_security_group_id]
   key_name                           = var.keypair
   user_data                          = data.template_file.openvpn-ec2-userdata.rendered
   associate_public_ip_address        = true
